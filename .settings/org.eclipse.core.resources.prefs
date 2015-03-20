@@ -1,4 +1,2 @@
 eclipse.preferences.version=1
-encoding//src/order/FromOpenToClosed.java=UTF-8
-encoding//src/order/JavassistProxifier.java=UTF-8
-encoding//src/order/StateMachine.java=UTF-8
+encoding//src/main/java/order/StateMachine.java=UTF-8

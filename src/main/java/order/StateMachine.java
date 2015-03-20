@@ -18,21 +18,27 @@ public class StateMachine {
 	}
 
 	public <T> T using(Class<T> clazz) {
+		State currentState = order.getState();
+		if (!currentState.canBeChangedBy((Class<? extends Action>) clazz)) {
+			throw new IllegalArgumentException("O estado " + currentState + " não pode ser alterado pela ação" + clazz);
+		}
+
 		return new JavassistProxifier(new MethodHandler() {
 			@Override
 			public Object invoke(Object obj, Method arg1, Method method, Object[] args) throws Throwable {
 
-				if(!isAnnotationPresent(obj, method, ChangeState.class)) return method.invoke(obj, args);
+				if (!isAnnotationPresent(obj, method, ChangeState.class))
+					return method.invoke(obj, args);
 
 				Action action = (Action) obj;
+				Object object = method.invoke(obj, args);
 				Field orderState = Order.class.getDeclaredField("state");
-				orderState.setAccessible(true);
 
-				if(action.canExecute(order) && theOrderIsOnState(action.getPreviousState(), orderState)) {
+				if (action.canExecute(order) && theOrderIsOnState(action.getPreviousState())) {
 
 					System.out.println("Depois, muda estado");
 
-					Object object = method.invoke(obj, args);
+					orderState.setAccessible(true);
 					orderState.set(order, action.getNextState());
 					return object;
 				}
@@ -40,18 +46,14 @@ public class StateMachine {
 				throw new IllegalStateException("Tentei mudar de estado mas a action nao deixou");
 			}
 
-			private boolean theOrderIsOnState(State previousState, Field orderState) {
-				try {
-					return orderState.get(order) == previousState;
-				} catch (IllegalArgumentException | IllegalAccessException e) {
-					throw new RuntimeException("Vish, order não tem state não", e);
-				}
+			private boolean theOrderIsOnState(State previousState) {
+				return order.getState() == previousState;
 			}
 
 			private boolean isAnnotationPresent(Object obj, Method method, Class<ChangeState> annotation) {
 				Method[] declaredMethods = obj.getClass().getSuperclass().getDeclaredMethods();
 				for (Method originalMethod : declaredMethods) {
-					if(method.getName().endsWith(originalMethod.getName()))
+					if (method.getName().endsWith(originalMethod.getName()))
 						return originalMethod.isAnnotationPresent(annotation);
 				}
 				return false;

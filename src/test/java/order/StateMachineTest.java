@@ -4,7 +4,6 @@ import static order.State.CLOSED;
 import static order.State.OPEN;
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 public class StateMachineTest {
@@ -23,7 +22,7 @@ public class StateMachineTest {
 
 	}
 
-	@Test(expected=IllegalStateException.class)
+	@Test(expected=IllegalArgumentException.class)
 	public void shouldNotCloseOrderThatIsAlreadyClosed()	{
 		Order order = new Order(State.CLOSED, "ABC123");
 		StateMachine.move(order)
